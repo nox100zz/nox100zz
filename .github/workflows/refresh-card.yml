@@ -1,0 +1,51 @@
+name: Refresh GitHub Profile Card
+
+on:
+  schedule:
+    # Every day at 06:17 UTC (13:17 Vietnam time)
+    - cron: "17 6 * * *"
+
+  # Allow manual execution
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-gh-ascii-card
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download latest profile cards
+        env:
+          HANDLE: nox100zz
+          GH_ASCII_URL: https://gh.crafter.run
+        run: |
+          curl -fsSL --retry 3 --retry-delay 5 \
+            "$GH_ASCII_URL/$HANDLE?theme=dark" \
+            -o dark_mode.svg
+
+          curl -fsSL --retry 3 --retry-delay 5 \
+            "$GH_ASCII_URL/$HANDLE?theme=light" \
+            -o light_mode.svg
+
+      - name: Commit only if cards changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add dark_mode.svg light_mode.svg
+
+          if git diff --cached --quiet; then
+            echo "Profile cards unchanged."
+          else
+            git commit -m "chore: refresh profile cards"
+            git push
+          fi
