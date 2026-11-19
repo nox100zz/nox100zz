@@ -1,13 +1,11 @@
-```yaml
 name: Refresh GitHub Profile Card
 
 on:
+  workflow_dispatch:
+
   schedule:
     # Every day at 06:17 UTC (13:17 Vietnam time)
     - cron: "17 6 * * *"
-
-  # Allow manual execution
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,36 +16,55 @@ concurrency:
 
 jobs:
   refresh:
+    name: Generate ASCII Profile Cards
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Generate profile cards from custom portrait
+      - name: Generate ASCII cards from custom portrait
         env:
           HANDLE: nox100zz
           GH_ASCII_URL: https://gh.crafter.run
         run: |
-          # Check custom portrait exists
-          test -s portrait.png
+          set -euo pipefail
 
-          # Generate Dark Mode
-          curl -fsSL --retry 3 --retry-delay 5 \
-            -F "image=@portrait.png" \
-            -F "theme=dark" \
-            "$GH_ASCII_URL/$HANDLE" \
-            -o dark_mode.svg
+          # Ensure custom portrait exists
+          if [ ! -s portrait.png ]; then
+            echo "::error::portrait.png is missing or empty."
+            exit 1
+          fi
 
-          # Generate Light Mode
-          curl -fsSL --retry 3 --retry-delay 5 \
-            -F "image=@portrait.png" \
-            -F "theme=light" \
-            "$GH_ASCII_URL/$HANDLE" \
-            -o light_mode.svg
+          # Generate Dark and Light ASCII cards
+          for theme in dark light; do
+            output="${theme}_mode.svg"
 
-      - name: Commit only if cards changed
+            echo "Generating ${theme} mode..."
+
+            curl -fsSL \
+              --connect-timeout 15 \
+              --max-time 120 \
+              --retry 3 \
+              --retry-delay 5 \
+              --retry-max-time 180 \
+              -F "image=@portrait.png" \
+              -F "theme=${theme}" \
+              "${GH_ASCII_URL}/${HANDLE}" \
+              -o "$output"
+
+            # Validate generated SVG
+            if [ ! -s "$output" ] || ! grep -q '<svg' "$output"; then
+              echo "::error::Invalid SVG generated for ${theme} mode."
+              exit 1
+            fi
+          done
+
+      - name: Commit and push updated cards
         run: |
+          set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
