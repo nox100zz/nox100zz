@@ -11,7 +11,7 @@ from datetime import date, datetime, timezone
 
 USER = "nox100zz"
 BIRTHDAY = date(2005, 2, 25)
-W = 60  # info column width in characters
+W = 68  # info column width in characters
 
 # Dán chuỗi ASCII ảnh chân dung của Sếp vào đây (Bước 4 bên dưới hướng dẫn tạo)
 # Kích thước tối ưu để không đè lên cột chữ bên phải: rộng 38-42 ký tự, cao 26-30 dòng
@@ -210,9 +210,9 @@ def kv(key, val, width=W):
 
 
 def kv2(k1, v1, k2, v2):
-    # 33 + 3 (" | ") + 24 = 60 == W
-    left = kv(k1, v1, 33)
-    return left + [(" | ", "d")] + kv(k2, v2, 24)
+    # 37 + 3 (" | ") + 28 = 68 == W
+    left = kv(k1, v1, 37)
+    return left + [(" | ", "d")] + kv(k2, v2, 28)
 
 
 def rule(title=""):
@@ -232,7 +232,7 @@ def info_lines(s):
         kv("Kernel", "Software Engineer"),
         kv("IDE", "VS Code, Cursor, Claude Code, Zed"),
         [],
-        kv("Languages.Programming", "Python, Java, C#, JS, TS"),
+        kv("Languages.Programming", "Python, Java, C#, JavaScript, TypeScript"),
         kv("Languages.Real", "Vietnamese, English, Japanese"),
         kv("Hobbies", "Traveling, Badminton, Listen to Music"),
         [],
@@ -270,7 +270,7 @@ def render(mode, stats):
         if not segs:
             continue
         spans = "".join(f'<tspan fill="{p[c]}">{html.escape(t)}</tspan>' for t, c in segs)
-        out.append(f'<text x="445" y="{45 + i * 21}" xml:space="preserve">{spans}</text>')
+        out.append(f'<text x="390" y="{45 + i * 21}" xml:space="preserve">{spans}</text>')
     out.append("</svg>")
     return "\n".join(out)
 
@@ -278,7 +278,7 @@ def render(mode, stats):
 def selfcheck():
     assert age(date(2005, 2, 25), date(2026, 2, 25)) == (21, 0, 0)
     assert age(date(2005, 2, 25), date(2026, 11, 21)) == (21, 8, 27)
-    assert len("".join(t for t, _ in kv("Languages.Programming", "Python, Java, C#, JS, TS"))) == W
+    assert len("".join(t for t, _ in kv("Languages.Programming", "Python, Java, C#, JavaScript, TypeScript"))) == W
     assert len("".join(t for t, _ in kv2("Repos", "10 {Contributed: 2}", "Stars", "5"))) == W
 
 
