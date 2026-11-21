@@ -9,7 +9,7 @@ import os
 import urllib.request
 from datetime import date, datetime, timezone
 
-USER = "nox100zz"
+USER = "towfminnh"
 BIRTHDAY = date(2005, 2, 25)
 W = 68  # info column width in characters
 
